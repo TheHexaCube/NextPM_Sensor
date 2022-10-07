@@ -13,12 +13,11 @@
  * Technical Note:      https://docs.rs-online.com/e64f/A700000006967547.pdf
  * 
  * Datum:               24.06.2022 
- * Autor:               Daniel Kinader
+ * Autor:               *snip*
  * 
  * 
  *  
  **/
-
 
 
 
@@ -36,9 +35,11 @@ class NextPm {
          */
               
 
-        NextPm();         
+        NextPm(Stream *serialStream);       
 
-        void sendRegister();
+        
+
+        void writeRegister(uint16_t adress, uint16_t value);
 
         /** @brief Read a register from the NextPM Sensor
          *  @param adress Starting adress of the register(s) to read
@@ -46,11 +47,14 @@ class NextPm {
          *  
          */
         void readRegister(int16_t adress, uint8_t length);
+    
 
     private:
 
-        byte buffer[32]; // Buffer for reading out Modbus Data
-       
+        byte _buffer[32]; // Buffer for reading out Modbus Data
+        Stream *_serialStream; // Hardware Serial Port to use
+        uint16_t crc16(byte *payload, uint8_t length); 
+    
 
 
 

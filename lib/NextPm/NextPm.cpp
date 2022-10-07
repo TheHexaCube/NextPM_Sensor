@@ -6,39 +6,66 @@
 
 
 
-NextPm::NextPm() { //Use Hardware Serial
-    Serial1.begin(115200, SERIAL_8E1);
-}
 
 
-void NextPm::sendRegister(){};
+NextPm::NextPm(Stream *serialStream) { //Use Hardware Serial
+    _serialStream = serialStream;
+};
+
+
+
+void NextPm::writeRegister(uint16_t adress, uint16_t value){
+
+    byte payload[] = {0x01, 0x06, adress << 8, adress & 0xFF, value << 8, value & 0xFF, 0xFF, 0xFF};
+    
+    uint16_t CRC = crc16(payload, sizeof(payload));   
+
+    payload[6] = CRC & 0xFF; // split 16-bit across two byte
+    payload[7] = CRC >> 8;  
+    
+
+    Serial.print("Sending : ");
+
+    for (int i = 0; i < sizeof(payload); i++){
+        printHex(payload[i], 2);
+    }
+    Serial.println();
+    _serialStream->write(payload, sizeof(payload)); 
+
+    while(!_serialStream->available()){};
+
+    
+
+    Serial.print("Received: ");
+    if(_serialStream->available()){        
+        //printHex(_serialStream->read(), 2);
+        _serialStream->readBytes(&_buffer[0], 3);
+        _serialStream->readBytes(&_buffer[3], _buffer[2]+2);
+    }
+    
+    for (int i = 0; i < _buffer[2]+5; i++){
+        printHex(_buffer[i], 2);
+    }
+    Serial.println();
+
+
+
+};
 
 /* Modbus Format:
 A0 C0 R0 R1 N0 N1 CRC16
 A0:                     Adress of PM Next Module                        - 0x01
 C0:                     Read  Command                                   - 0x03
-                        Write Command                                   - 0x06
+                        Write Command                                   - 0x06printhexS
 R0 R1:                  Target Register Address (16 Bit)
 N0 N1:                  Number of Registers to Read (16 Bit)
 CRC16:                  CRC16 Checksum
 */ 
 
+uint16_t NextPm::crc16(byte *payload, uint8_t length){
+    uint16_t CRC = 0xFFFF;  
 
-
-void NextPm::readRegister(int16_t adress, uint8_t length){
-    
-    Serial.println(Serial1.readBytes(buffer, 32));
-    
-
-    if (Serial1) {
-        uint16_t CRC = 0xFFFF;      
-
-
-        byte payload[] = {0x01, 0x03, adress << 8, adress & 0xFF, 0x00, length, 0xFF, 0xFF};
-        
-       
-        for (int i = 0; i < sizeof(payload)-2; i++) {
-            
+    for (int i = 0; i < length-2; i++) {            
 
             // calculate CRC16 of payload and append to payload
             CRC ^= payload[i];
@@ -55,19 +82,42 @@ void NextPm::readRegister(int16_t adress, uint8_t length){
                 }
             }
         }
-       
-        payload[6] = CRC & 0xFF; // split 16-bit across two byte
-        payload[7] = CRC >> 8;
-        
-
-        
-        for (int i = 0; i < sizeof(payload); i++) {
-            //printHex(payload[i], 2); // debug output
-           
-        }        
-         Serial1.write(payload, sizeof(payload)); // send payload over Serial1 to sensor <---- no working!       
-       
-    }    
+        return CRC;
 };
+
+void NextPm::readRegister(int16_t adress, uint8_t length){ 
+
+    byte payload[] = {0x01, 0x03, adress << 8, adress & 0xFF, 0x00, length, 0xFF, 0xFF};
+    
+    uint16_t CRC = crc16(payload, sizeof(payload));   
+
+    payload[6] = CRC & 0xFF; // split 16-bit across two byte
+    payload[7] = CRC >> 8;  
+    
+    Serial.print("Sending : ");
+
+    for (int i = 0; i < sizeof(payload); i++){
+        printHex(payload[i], 2);
+    }
+    Serial.println();
+    _serialStream->write(payload, sizeof(payload)); 
+
+    while(!_serialStream->available()){};
+
+    
+
+    Serial.print("Received: ");
+    if(_serialStream->available()){        
+        //printHex(_serialStream->read(), 2);
+        _serialStream->readBytes(&_buffer[0], 3);
+        _serialStream->readBytes(&_buffer[3], _buffer[2]+2);
+    }
+    
+    for (int i = 0; i < _buffer[2]+5; i++){
+        printHex(_buffer[i], 2);
+    }
+    Serial.println();
+    
+};    
 
 
