@@ -30,9 +30,11 @@ void loop() {
   delay(2500);
 
   pm.writeRegister(89, 50);
+  //pm.writeRegister(0x0065, 0x0000);
   delay(5000);
 
-  pm.writeRegister(89, 290);
+  pm.writeRegister(89, 290); // default value?
+  //pm.writeRegister(0x0065, 0x2710);
   delay(5000);
   // put your main code here, to run repeatedly:
 

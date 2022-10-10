@@ -16,12 +16,15 @@ NextPm::NextPm(Stream *serialStream) { //Use Hardware Serial
 
 void NextPm::writeRegister(uint16_t adress, uint16_t value){
 
-    byte payload[] = {0x01, 0x06, adress << 8, adress & 0xFF, value << 8, value & 0xFF, 0xFF, 0xFF};
+    // Write multiple registers: A1, C1, Start_adress, number_of_registers, number_of_bytes, data, CRC
+    //in this case, just write a single register -> hardcode no of registers = 1, no of registers = 1
+    memset(_buffer, 0, sizeof(_buffer)); //clear buffer
+    byte payload[] = {0x01, 0x10, adress >> 8, adress & 0xFF, 0x00, 0x01, 0x02, value >> 8, value & 0xFF, 0xFF, 0xFF};
     
     uint16_t CRC = crc16(payload, sizeof(payload));   
 
-    payload[6] = CRC & 0xFF; // split 16-bit across two byte
-    payload[7] = CRC >> 8;  
+    payload[sizeof(payload)-2] = CRC & 0xFF; // split 16-bit across two byte
+    payload[sizeof(payload)-1] = CRC >> 8;  
     
 
     Serial.print("Sending : ");
@@ -33,7 +36,7 @@ void NextPm::writeRegister(uint16_t adress, uint16_t value){
     _serialStream->write(payload, sizeof(payload)); 
 
     while(!_serialStream->available()){};
-
+    
     
 
     Serial.print("Received: ");
@@ -87,7 +90,7 @@ uint16_t NextPm::crc16(byte *payload, uint8_t length){
 
 void NextPm::readRegister(int16_t adress, uint8_t length){ 
 
-    byte payload[] = {0x01, 0x03, adress << 8, adress & 0xFF, 0x00, length, 0xFF, 0xFF};
+    byte payload[] = {0x01, 0x03, adress >> 8, adress & 0xFF, 0x00, length, 0xFF, 0xFF};
     
     uint16_t CRC = crc16(payload, sizeof(payload));   
 
