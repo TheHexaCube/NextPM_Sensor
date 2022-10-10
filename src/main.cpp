@@ -13,14 +13,6 @@ void setup() {
 
   delay(1000);
 
-
-
-  
-
-  
-
-  
-  
   // put your setup code here, to run once:
 }
 

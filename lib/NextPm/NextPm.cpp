@@ -5,9 +5,6 @@
 #include "printhex.h"
 
 
-
-
-
 NextPm::NextPm(Stream *serialStream) { //Use Hardware Serial
     _serialStream = serialStream;
 };
