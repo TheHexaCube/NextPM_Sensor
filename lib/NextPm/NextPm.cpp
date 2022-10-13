@@ -10,6 +10,41 @@ NextPm::NextPm(Stream *serialStream) { //Use Hardware Serial
 };
 
 
+void NextPm::writeReadRegister(uint16_t adress, uint16_t value){
+    memset(_buffer, 0, sizeof(_buffer)); //clear buffer
+    byte payload[] = {0x01, 0x17, adress >> 8, adress & 0xFF, 0x00, 0x01, adress >> 8, adress & 0xFF, 0x00, 0x01, 0x02, value >> 8, value & 0xFF, 0xFF, 0xFF};
+    
+    uint16_t CRC = crc16(payload, sizeof(payload));   
+
+    payload[sizeof(payload)-2] = CRC & 0xFF; // split 16-bit across two byte
+    payload[sizeof(payload)-1] = CRC >> 8;  
+    
+
+    Serial.print("Sending : ");
+
+    for (int i = 0; i < sizeof(payload); i++){
+        printHex(payload[i], 2);
+    }
+    Serial.println();
+    _serialStream->write(payload, sizeof(payload)); 
+
+    while(!_serialStream->available()){};
+    
+    
+
+    Serial.print("Received: ");
+    if(_serialStream->available()){        
+        //printHex(_serialStream->read(), 2);
+        _serialStream->readBytes(&_buffer[0], 3);
+        _serialStream->readBytes(&_buffer[3], _buffer[2]+2);
+    }
+    
+    for (int i = 0; i < _buffer[2]+5; i++){
+        printHex(_buffer[i], 2);
+    }
+    Serial.println();
+}
+
 
 void NextPm::writeRegister(uint16_t adress, uint16_t value){
 

@@ -12,14 +12,11 @@
  * User-Guide:          https://docs.rs-online.com/15b0/A700000006625602.pdf
  * Technical Note:      https://docs.rs-online.com/e64f/A700000006967547.pdf
  * 
+ * Modbus Protocol:     https://modbus.org/docs/Modbus_Application_Protocol_V1_1b.pdf
+ * 
  * Datum:               24.06.2022 
  * Autor:               *snip*
- * 
- * 
- *  
  **/
-
-
 
 
 /**
@@ -40,6 +37,7 @@ class NextPm {
         
 
         void writeRegister(uint16_t adress, uint16_t value);
+        void writeReadRegister(uint16_t adress, uint16_t value);
 
         /** @brief Read a register from the NextPM Sensor
          *  @param adress Starting adress of the register(s) to read
@@ -55,12 +53,6 @@ class NextPm {
         Stream *_serialStream; // Hardware Serial Port to use
         uint16_t crc16(byte *payload, uint8_t length); 
     
-
-
-
-
-
-
 
 };
 
